@@ -537,7 +537,7 @@ const Home = () => {
                               <div className="text-xs text-surface-600 dark:text-surface-400">{deal.probability}%</div>
                             </td>
                             <td className="px-4 py-3 whitespace-nowrap">
-                              <div className="text-surface-600 dark:text-surface-300">{typeof deal.contact === 'object' ? deal.contact.Name || 'Unknown' : deal.contact || 'Unknown'}</div>
+                              <div className="text-surface-600 dark:text-surface-300">{deal.contact?.Name || deal.contactName || deal.contact || 'Unknown'}</div>
                             </td>
                           </tr>
                         ))}
