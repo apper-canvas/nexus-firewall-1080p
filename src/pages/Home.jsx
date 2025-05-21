@@ -133,7 +133,7 @@ const Home = () => {
   // Update tab-specific data when tab changes
   useEffect(() => {
     const refreshTabData = async () => {
-      switch (activeTab) {
+      switch (activeTab) { 
         case 'contacts':
           if (!isLoading.contacts && (contacts.length === 0 || error.contacts)) {
             await loadContacts();
@@ -165,7 +165,7 @@ const Home = () => {
     };
     
     refreshTabData();
-  }, []);
+  }, [activeTab, isLoading.contacts, isLoading.deals, isLoading.tasks, contacts.length, deals.length, tasks.length, error.contacts, error.deals, error.tasks]);
 
   const addNewContact = (contact) => {
     return createContact({
@@ -537,7 +537,7 @@ const Home = () => {
                               <div className="text-xs text-surface-600 dark:text-surface-400">{deal.probability}%</div>
                             </td>
                             <td className="px-4 py-3 whitespace-nowrap">
-                              <div className="text-surface-600 dark:text-surface-300">{deal.contact}</div>
+                              <div className="text-surface-600 dark:text-surface-300">{typeof deal.contact === 'object' ? deal.contact.Name || 'Unknown' : deal.contact || 'Unknown'}</div>
                             </td>
                           </tr>
                         ))}
