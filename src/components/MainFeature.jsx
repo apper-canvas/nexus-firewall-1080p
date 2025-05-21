@@ -17,10 +17,14 @@ const MainFeature = ({ onAddContact }) => {
   const [formErrors, setFormErrors] = useState({});
   
   // Icon components
-  const UserPlusIcon = getIcon('user-plus');
-  const XIcon = getIcon('x');
-  const CheckIcon = getIcon('check');
+  const UserPlusIcon = getIcon('user-plus'); 
+  const XIcon = getIcon('x'); 
+  const CheckIcon = getIcon('check'); 
   const AlertTriangleIcon = getIcon('alert-triangle');
+  const UserIcon = getIcon('user');
+  const UserCheckIcon = getIcon('user-check');
+  const UsersIcon = getIcon('users');
+  const HandshakeIcon = getIcon('handshake');
 
   // Form handling
   const handleInputChange = (e) => {
