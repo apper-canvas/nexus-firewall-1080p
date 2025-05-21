@@ -60,6 +60,14 @@ const Home = () => {
     const totalRevenue = dealsData?.reduce((sum, deal) => sum + (parseFloat(deal.amount) || 0), 0) || 0;
     const pendingTasks = tasksData?.filter(task => task.status === 'pending')?.length || 0;
 
+    setStats({
+      totalContacts,
+      activeDeals,
+      totalRevenue,
+      pendingTasks
+    });
+  };
+
   // Navigation items
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: 'pie-chart' },
@@ -68,14 +76,6 @@ const Home = () => {
     { id: 'tasks', label: 'Tasks', icon: 'check-square' },
     { id: 'reports', label: 'Reports', icon: 'bar-chart-2' },
   ];
-
-    setStats({
-      totalContacts,
-      activeDeals,
-      totalRevenue,
-      pendingTasks
-    });
-  };
 
   // Load deals
   const loadDeals = async () => {
@@ -168,7 +168,6 @@ const Home = () => {
   }, []);
 
   const addNewContact = (contact) => {
-  const LogOutIcon = getIcon('log-out');
     return createContact({
       ...contact
     }).then(newContact => {
@@ -190,6 +189,7 @@ const Home = () => {
   const BriefcaseIcon = getIcon('briefcase');
   const CheckSquareIcon = getIcon('check-square');
   const DollarSignIcon = getIcon('dollar-sign');
+  const LogOutIcon = getIcon('log-out');
 
   return (
     <div className="flex h-screen overflow-hidden bg-surface-50 dark:bg-surface-900">
@@ -229,20 +229,6 @@ const Home = () => {
           
           <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
             {navItems.map((item) => {
-              const NavIcon = getIcon(item.icon);
-              return (
-                <button
-                  key={item.id}
-                  className={`flex items-center w-full px-4 py-3 text-left transition-colors rounded-lg ${
-                    activeTab === item.id
-                      ? 'bg-primary bg-opacity-10 text-primary dark:text-primary-light'
-                      : 'text-surface-700 hover:bg-surface-200 dark:text-surface-300 dark:hover:bg-surface-700'
-                  }`}
-                  onClick={() => {
-                    setActiveTab(item.id);
-                    setIsNavOpen(false);
-                  }}
-                >
               const NavIcon = getIcon(item.icon);
               return (
                 <button
@@ -456,10 +442,10 @@ const Home = () => {
                       <tbody className="divide-y divide-surface-200 dark:divide-surface-700">
                         {contacts.map((contact) => (
                           <tr key={contact.id} className="hover:bg-surface-50 dark:hover:bg-surface-800">
+                            <td className="px-4 py-3 whitespace-nowrap">
                               <div className="font-medium text-surface-900 dark:text-white">{contact.Name}</div>
-                              <div className="font-medium text-surface-900 dark:text-white">{contact.name}</div>
                             </td>
-                              <div className="text-surface-600 dark:text-surface-300">{contact.email}</div>
+                            <td className="px-4 py-3 whitespace-nowrap hidden sm:table-cell">
                               <div className="text-surface-600 dark:text-surface-300">{contact.email}</div>
                             </td>
                             <td className="px-4 py-3 whitespace-nowrap hidden md:table-cell">
