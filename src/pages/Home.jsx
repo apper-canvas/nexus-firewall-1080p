@@ -157,14 +157,7 @@ const Home = () => {
           const [contactsData, dealsData, tasksData] = await Promise.all([
             // Each Promise is wrapped with catch to prevent one failure from stopping all
             // This ensures robust loading even if one service fails
-            contacts.length === 0 || error.contacts ? 
-              loadContacts().catch(err => {
-                console.error("Error refreshing contacts:", err);
-                setError(prev => ({ ...prev, contacts: "Failed to refresh contacts" }));
-                return [];
-              }) 
-              : Promise.resolve(contacts),
-            contacts.length === 0 ? 
+            (contacts.length === 0 || error.contacts) ? 
               loadContacts().catch(err => {
                 console.error("Error refreshing contacts:", err);
                 setError(prev => ({ ...prev, contacts: "Failed to refresh contacts" }));
@@ -193,7 +186,18 @@ const Home = () => {
     };
     
     refreshTabData();
-  }, [activeTab, isLoading.contacts, isLoading.deals, isLoading.tasks, contacts.length, deals.length, tasks.length, error.contacts, error.deals, error.tasks]);
+    // Removed potential circular dependencies that could lead to infinite rerenders
+    // We only need to refresh when the tab changes or when there's an error state change
+    // The lengths and loading states are already managed internally in the refreshTabData function
+  }, [
+    activeTab, 
+    // Including only the error states which would trigger a refresh if they change
+    error.contacts, 
+    error.deals, 
+    error.tasks
+    // Removed isLoading states and list lengths to prevent potential loops
+    // since these are updated by the functions called within this effect
+  ]);
 
   const addNewContact = (contact) => {
     return createContact({
@@ -424,7 +428,9 @@ const Home = () => {
                                   contact.type === 'prospect' ? 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200' :
                                   'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
                                 }`}>
-                                  {contact.type.charAt(0).toUpperCase() + contact.type.slice(1)}
+                                  {contact.type && typeof contact.type === 'string' 
+                                    ? contact.type.charAt(0).toUpperCase() + contact.type.slice(1) 
+                                    : 'Unknown'}
                                 </span>
                               </td>
                             </tr>
@@ -494,7 +500,9 @@ const Home = () => {
                                 contact.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 
                                 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
                               }`}>
-                                {contact.status.charAt(0).toUpperCase() + contact.status.slice(1)}
+                                {contact.status && typeof contact.status === 'string'
+                                  ? contact.status.charAt(0).toUpperCase() + contact.status.slice(1)
+                                  : 'Unknown'}
                               </span>
                             </td>
                           </tr>
@@ -555,7 +563,9 @@ const Home = () => {
                                 deal.stage === 'closed-won' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
                                 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
                               }`}>
-                                {deal.stage.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                                {deal.stage && typeof deal.stage === 'string'
+                                  ? deal.stage.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+                                  : 'Unknown'}
                               </span>
                             </td>
                             <td className="px-4 py-3 whitespace-nowrap hidden md:table-cell">
