@@ -25,6 +25,9 @@ const MainFeature = ({ onAddContact }) => {
   const UserCheckIcon = getIcon('user-check');
   const UsersIcon = getIcon('users');
   const HandshakeIcon = getIcon('handshake');
+  const UserCheckIcon = getIcon('user-check');
+  const UsersIcon = getIcon('users');
+  const HandshakeIcon = getIcon('handshake');
 
   // Form handling
   const handleInputChange = (e) => {
