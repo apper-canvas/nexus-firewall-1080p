@@ -1,9 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { getIcon } from '../utils/iconUtils';
+import { fetchContactTypeStats } from '../services/contactService';
 
 const MainFeature = ({ onAddContact }) => {
+  // State for contact stats
+  const [contactStats, setContactStats] = useState({ leads: 0, prospects: 0, customers: 0, partners: 0 });
+  const [isLoadingStats, setIsLoadingStats] = useState(false);
   // State management for form
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -15,6 +19,7 @@ const MainFeature = ({ onAddContact }) => {
     title: ''
   });
   const [formErrors, setFormErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Icon components
   const UserPlusIcon = getIcon('user-plus'); 
@@ -25,6 +30,23 @@ const MainFeature = ({ onAddContact }) => {
   const UserCheckIcon = getIcon('user-check');
   const UsersIcon = getIcon('users');
   const HandshakeIcon = getIcon('handshake');
+
+  // Load contact stats
+  useEffect(() => {
+    const loadContactStats = async () => {
+      setIsLoadingStats(true);
+      try {
+        const stats = await fetchContactTypeStats();
+        setContactStats(stats);
+      } catch (error) {
+        console.error("Error loading contact stats:", error);
+        toast.error("Failed to load contact statistics");
+      } finally {
+        setIsLoadingStats(false);
+      }
+    };
+    loadContactStats();
+  }, []);
 
   // Form handling
   const handleInputChange = (e) => {
@@ -58,13 +80,15 @@ const MainFeature = ({ onAddContact }) => {
     return Object.keys(errors).length === 0;
   };
   
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (validateForm()) {
+      setIsSubmitting(true);
       try {
         // Call parent component function to add contact
-        onAddContact(formData);
+        await onAddContact(formData);
+        
         
         // Reset form
         setFormData({
@@ -82,6 +106,8 @@ const MainFeature = ({ onAddContact }) => {
         toast.error("Failed to add contact. Please try again.");
         console.error("Error adding contact:", error);
       }
+      setIsSubmitting(false);
+      
     } else {
       toast.error("Please fix the errors in the form.");
     }
@@ -202,7 +228,7 @@ const MainFeature = ({ onAddContact }) => {
                   </div>
                   
                   <div className="input-group">
-                    <label htmlFor="title" className="input-label">Job Title</label>
+                    <label htmlFor="title" className="input-label">Title</label>
                     <input
                       type="text"
                       id="title"
@@ -242,6 +268,7 @@ const MainFeature = ({ onAddContact }) => {
                   <motion.button
                     type="submit"
                     className="btn-primary"
+                    disabled={isSubmitting}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -281,7 +308,7 @@ const MainFeature = ({ onAddContact }) => {
             Add and manage your business contacts. Keep track of leads, prospects, customers, and partners in one centralized system.
           </p>
           
-          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {isLoadingStats ? <div className="text-center py-4">Loading contact statistics...</div> : <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-white dark:bg-surface-800 p-4 rounded-lg border border-surface-200 dark:border-surface-700">
               <div className="flex items-center">
                 <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-md">
@@ -289,7 +316,7 @@ const MainFeature = ({ onAddContact }) => {
                 </div>
                 <div className="ml-4">
                   <h4 className="text-sm font-medium">Leads</h4>
-                  <p className="text-2xl font-semibold">3</p>
+                  <p className="text-2xl font-semibold">{contactStats.leads}</p>
                 </div>
               </div>
             </div>
@@ -301,7 +328,7 @@ const MainFeature = ({ onAddContact }) => {
                 </div>
                 <div className="ml-4">
                   <h4 className="text-sm font-medium">Prospects</h4>
-                  <p className="text-2xl font-semibold">5</p>
+                  <p className="text-2xl font-semibold">{contactStats.prospects}</p>
                 </div>
               </div>
             </div>
@@ -313,7 +340,7 @@ const MainFeature = ({ onAddContact }) => {
                 </div>
                 <div className="ml-4">
                   <h4 className="text-sm font-medium">Customers</h4>
-                  <p className="text-2xl font-semibold">12</p>
+                  <p className="text-2xl font-semibold">{contactStats.customers}</p>
                 </div>
               </div>
             </div>
@@ -325,11 +352,11 @@ const MainFeature = ({ onAddContact }) => {
                 </div>
                 <div className="ml-4">
                   <h4 className="text-sm font-medium">Partners</h4>
-                  <p className="text-2xl font-semibold">2</p>
+                  <p className="text-2xl font-semibold">{contactStats.partners}</p>
                 </div>
               </div>
             </div>
-          </div>
+          </div>}
         </div>
       )}
     </div>

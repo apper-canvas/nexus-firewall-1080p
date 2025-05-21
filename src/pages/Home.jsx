@@ -1,20 +1,64 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
+import { useContext } from 'react';
 import { getIcon } from '../utils/iconUtils';
+import { AuthContext } from '../App';
 import MainFeature from '../components/MainFeature';
+import { fetchContacts, createContact, updateContact, deleteContact } from '../services/contactService';
+import { fetchDeals, createDeal, updateDeal, deleteDeal } from '../services/dealService';
+import { fetchTasks } from '../services/taskService';
 
 const Home = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isNavOpen, setIsNavOpen] = useState(false);
   const [contacts, setContacts] = useState([]);
   const [deals, setDeals] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  const [isLoading, setIsLoading] = useState({
+    contacts: false,
+    deals: false,
+    tasks: false
+  });
+  const [error, setError] = useState({
+    contacts: null,
+    deals: null,
+    tasks: null
+  });
   const [stats, setStats] = useState({
     totalContacts: 0,
     activeDeals: 0,
     totalRevenue: 0,
     pendingTasks: 0
   });
+  
+  const navigate = useNavigate();
+  const { logout } = useContext(AuthContext);
+
+  // Load contacts
+  const loadContacts = async () => {
+    setIsLoading(prev => ({ ...prev, contacts: true }));
+    try {
+      const data = await fetchContacts();
+      setContacts(data);
+      return data;
+    } catch (error) {
+      console.error("Error loading contacts:", error);
+      setError(prev => ({ ...prev, contacts: "Failed to load contacts" }));
+      toast.error("Failed to load contacts");
+      return [];
+    } finally {
+      setIsLoading(prev => ({ ...prev, contacts: false }));
+    }
+  };
+
+  // Calculate stats
+  const calculateStats = (contactsData, dealsData, tasksData) => {
+    const totalContacts = contactsData?.length || 0;
+    const activeDeals = dealsData?.length || 0;
+    const totalRevenue = dealsData?.reduce((sum, deal) => sum + (parseFloat(deal.amount) || 0), 0) || 0;
+    const pendingTasks = tasksData?.filter(task => task.status === 'pending')?.length || 0;
 
   // Navigation items
   const navItems = [
@@ -25,57 +69,117 @@ const Home = () => {
     { id: 'reports', label: 'Reports', icon: 'bar-chart-2' },
   ];
 
-  // Sample data loading simulation
+    setStats({
+      totalContacts,
+      activeDeals,
+      totalRevenue,
+      pendingTasks
+    });
+  };
+
+  // Load deals
+  const loadDeals = async () => {
+    setIsLoading(prev => ({ ...prev, deals: true }));
+    try {
+      const data = await fetchDeals();
+      setDeals(data);
+      return data;
+    } catch (error) {
+      console.error("Error loading deals:", error);
+      setError(prev => ({ ...prev, deals: "Failed to load deals" }));
+      toast.error("Failed to load deals");
+      return [];
+    } finally {
+      setIsLoading(prev => ({ ...prev, deals: false }));
+    }
+  };
+
+  // Load tasks
+  const loadTasks = async () => {
+    setIsLoading(prev => ({ ...prev, tasks: true }));
+    try {
+      const data = await fetchTasks();
+      setTasks(data);
+      return data;
+    } catch (error) {
+      console.error("Error loading tasks:", error);
+      setError(prev => ({ ...prev, tasks: "Failed to load tasks" }));
+      toast.error("Failed to load tasks");
+      return [];
+    } finally {
+      setIsLoading(prev => ({ ...prev, tasks: false }));
+    }
+  };
+
+  // Load all data and calculate stats
   useEffect(() => {
-    const loadSampleData = () => {
-      // Sample contacts data
-      const sampleContacts = [
-        { id: 1, name: 'Alice Johnson', email: 'alice@example.com', company: 'Tech Solutions', type: 'customer', status: 'active' },
-        { id: 2, name: 'Bob Smith', email: 'bob@example.com', company: 'Acme Corp', type: 'lead', status: 'active' },
-        { id: 3, name: 'Charlie Davis', email: 'charlie@example.com', company: 'Global Innovations', type: 'prospect', status: 'active' },
-        { id: 4, name: 'Diana Wilson', email: 'diana@example.com', company: 'Future Enterprises', type: 'partner', status: 'inactive' },
-      ];
-      
-      // Sample deals data
-      const sampleDeals = [
-        { id: 1, name: 'Software Implementation', amount: 25000, stage: 'proposal', probability: 60, contact: 'Alice Johnson' },
-        { id: 2, name: 'Annual Subscription', amount: 12000, stage: 'negotiation', probability: 75, contact: 'Bob Smith' },
-        { id: 3, name: 'Hardware Upgrade', amount: 35000, stage: 'qualification', probability: 30, contact: 'Charlie Davis' },
-      ];
-      
-      // Calculate stats
-      const totalContacts = sampleContacts.length;
-      const activeDeals = sampleDeals.length;
-      const totalRevenue = sampleDeals.reduce((sum, deal) => sum + deal.amount, 0);
-      const pendingTasks = 5; // Sample value
-      
-      setContacts(sampleContacts);
-      setDeals(sampleDeals);
-      setStats({
-        totalContacts,
-        activeDeals,
-        totalRevenue,
-        pendingTasks
-      });
+    const loadAllData = async () => {
+      try {
+        const [contactsData, dealsData, tasksData] = await Promise.all([
+          loadContacts(),
+          loadDeals(),
+          loadTasks()
+        ]);
+        
+        calculateStats(contactsData, dealsData, tasksData);
+      } catch (error) {
+        console.error("Error loading data:", error);
+      }
     };
     
-    loadSampleData();
+    loadAllData();
+  }, []);
+
+  // Update tab-specific data when tab changes
+  useEffect(() => {
+    const refreshTabData = async () => {
+      switch (activeTab) {
+        case 'contacts':
+          if (!isLoading.contacts && (contacts.length === 0 || error.contacts)) {
+            await loadContacts();
+          }
+          break;
+        case 'deals':
+          if (!isLoading.deals && (deals.length === 0 || error.deals)) {
+            await loadDeals();
+          }
+          break;
+        case 'tasks':
+          if (!isLoading.tasks && (tasks.length === 0 || error.tasks)) {
+            await loadTasks();
+          }
+          break;
+        case 'dashboard':
+          // Dashboard shows all data, so refresh everything
+          const [contactsData, dealsData, tasksData] = await Promise.all([
+            contacts.length === 0 ? loadContacts() : Promise.resolve(contacts),
+            deals.length === 0 ? loadDeals() : Promise.resolve(deals),
+            tasks.length === 0 ? loadTasks() : Promise.resolve(tasks)
+          ]);
+          
+          calculateStats(contactsData, dealsData, tasksData);
+          break;
+        default:
+          break;
+      }
+    };
+    
+    refreshTabData();
   }, []);
 
   const addNewContact = (contact) => {
-    const newContact = {
-      id: contacts.length + 1,
-      ...contact,
-      status: 'active'
-    };
-    
-    setContacts([...contacts, newContact]);
-    setStats({
-      ...stats,
-      totalContacts: stats.totalContacts + 1
+  const LogOutIcon = getIcon('log-out');
+    return createContact({
+      ...contact
+    }).then(newContact => {
+      setContacts(prevContacts => [...prevContacts, newContact]);
+      setStats(prevStats => ({
+        ...prevStats,
+        totalContacts: prevStats.totalContacts + 1
+      }));
+      toast.success(`Added new contact: ${newContact.Name}`);
+      return newContact;
     });
-    
-    toast.success(`Added new contact: ${contact.name}`);
   };
 
   // Icon components
@@ -139,11 +243,40 @@ const Home = () => {
                     setIsNavOpen(false);
                   }}
                 >
+              const NavIcon = getIcon(item.icon);
+              return (
+                <button
+                  key={item.id}
+                  className={`flex items-center w-full px-4 py-3 text-left transition-colors rounded-lg ${
+                    activeTab === item.id
+                      ? 'bg-primary bg-opacity-10 text-primary dark:text-primary-light'
+                      : 'text-surface-700 hover:bg-surface-200 dark:text-surface-300 dark:hover:bg-surface-700'
+                  }`}
+                  onClick={() => {
+                    setActiveTab(item.id);
+                    setIsNavOpen(false);
+                  }}
+                >
                   <NavIcon className="mr-3 h-5 w-5" />
                   <span>{item.label}</span>
                 </button>
               );
             })}
+            
+            {/* Logout button at the bottom of nav */}
+            <div className="mt-auto pt-4 border-t border-surface-200 dark:border-surface-700">
+              <button
+                className="flex items-center w-full px-4 py-3 text-left transition-colors rounded-lg text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-surface-700"
+                onClick={logout}
+              >
+                <LogOutIcon className="mr-3 h-5 w-5" />
+                <span>Logout</span>
+              </button>
+            </div>
+            
+            <div className="text-xs text-center mt-4 text-surface-500 dark:text-surface-400">
+              v0.1.0
+            </div>
           </nav>
         </div>
       </motion.aside>
@@ -167,7 +300,7 @@ const Home = () => {
             <div className="flex items-center space-x-4">
               <button 
                 className="btn-primary text-sm hidden sm:flex"
-                onClick={() => toast.info("Feature coming soon!")}
+                onClick={() => setActiveTab('contacts')}
               >
                 <UserPlusIcon className="h-4 w-4 mr-2" />
                 Add Contact
@@ -189,7 +322,8 @@ const Home = () => {
             >
               {activeTab === 'dashboard' && (
                 <div className="space-y-6">
-                  {/* Stats cards */}
+                  {/* Stats cards - loading state */}
+                  {(isLoading.contacts || isLoading.deals || isLoading.tasks) && <div className="text-center py-4">Loading dashboard data...</div>}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                     <div className="neu-card-light dark:neu-card-dark">
                       <div className="flex items-start justify-between">
@@ -245,9 +379,10 @@ const Home = () => {
                   
                   {/* Recent contacts */}
                   <div className="card p-6">
-                    <h3 className="text-lg font-semibold mb-4">Recent Contacts</h3>
+                    <h3 className="text-lg font-semibold mb-4">Recent Contacts {isLoading.contacts && <span className="text-sm font-normal text-surface-500">(Loading...)</span>}</h3>
                     <div className="overflow-x-auto">
-                      <table className="min-w-full divide-y divide-surface-200 dark:divide-surface-700">
+                      {error.contacts && <div className="text-red-500 mb-4">{error.contacts}</div>}
+                      {!isLoading.contacts && contacts.length > 0 && <table className="min-w-full divide-y divide-surface-200 dark:divide-surface-700">
                         <thead>
                           <tr>
                             <th className="px-4 py-3 text-left text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wider">Name</th>
@@ -260,7 +395,7 @@ const Home = () => {
                           {contacts.map((contact) => (
                             <tr key={contact.id} className="hover:bg-surface-50 dark:hover:bg-surface-800">
                               <td className="px-4 py-3 whitespace-nowrap">
-                                <div className="font-medium text-surface-900 dark:text-white">{contact.name}</div>
+                                <div className="font-medium text-surface-900 dark:text-white">{contact.Name}</div>
                               </td>
                               <td className="px-4 py-3 whitespace-nowrap hidden sm:table-cell">
                                 <div className="text-surface-600 dark:text-surface-300">{contact.email}</div>
@@ -281,7 +416,12 @@ const Home = () => {
                             </tr>
                           ))}
                         </tbody>
-                      </table>
+                      </table>}
+                      {!isLoading.contacts && contacts.length === 0 && !error.contacts && (
+                        <div className="text-center py-8 text-surface-500 dark:text-surface-400">
+                          No contacts found. Add your first contact to get started.
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -295,12 +435,13 @@ const Home = () => {
                   </p>
                   <button 
                     className="btn-primary mb-6"
-                    onClick={() => toast.info("Feature coming soon!")}
+                    onClick={() => setActiveTab('dashboard')}
                   >
                     <UserPlusIcon className="h-4 w-4 mr-2" />
                     Add New Contact
                   </button>
                   
+                  {isLoading.contacts && <div className="text-center py-4">Loading contacts...</div>}
                   <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-surface-200 dark:divide-surface-700">
                       <thead>
@@ -315,10 +456,10 @@ const Home = () => {
                       <tbody className="divide-y divide-surface-200 dark:divide-surface-700">
                         {contacts.map((contact) => (
                           <tr key={contact.id} className="hover:bg-surface-50 dark:hover:bg-surface-800">
-                            <td className="px-4 py-3 whitespace-nowrap">
+                              <div className="font-medium text-surface-900 dark:text-white">{contact.Name}</div>
                               <div className="font-medium text-surface-900 dark:text-white">{contact.name}</div>
                             </td>
-                            <td className="px-4 py-3 whitespace-nowrap hidden sm:table-cell">
+                              <div className="text-surface-600 dark:text-surface-300">{contact.email}</div>
                               <div className="text-surface-600 dark:text-surface-300">{contact.email}</div>
                             </td>
                             <td className="px-4 py-3 whitespace-nowrap hidden md:table-cell">
@@ -358,12 +499,13 @@ const Home = () => {
                   </p>
                   <button 
                     className="btn-primary mb-6"
-                    onClick={() => toast.info("Feature coming soon!")}
+                    onClick={() => toast.info("Deal creation coming soon!")}
                   >
                     <BriefcaseIcon className="h-4 w-4 mr-2" />
                     Add New Deal
                   </button>
                   
+                  {isLoading.deals && <div className="text-center py-4">Loading deals...</div>}
                   <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-surface-200 dark:divide-surface-700">
                       <thead>
@@ -379,10 +521,10 @@ const Home = () => {
                         {deals.map((deal) => (
                           <tr key={deal.id} className="hover:bg-surface-50 dark:hover:bg-surface-800">
                             <td className="px-4 py-3 whitespace-nowrap">
-                              <div className="font-medium text-surface-900 dark:text-white">{deal.name}</div>
+                              <div className="font-medium text-surface-900 dark:text-white">{deal.Name}</div>
                             </td>
                             <td className="px-4 py-3 whitespace-nowrap">
-                              <div className="text-surface-900 dark:text-white font-medium">${deal.amount.toLocaleString()}</div>
+                              <div className="text-surface-900 dark:text-white font-medium">${parseFloat(deal.amount).toLocaleString()}</div>
                             </td>
                             <td className="px-4 py-3 whitespace-nowrap hidden sm:table-cell">
                               <span className={`inline-flex text-xs px-2 py-1 rounded-full ${
@@ -397,13 +539,13 @@ const Home = () => {
                             </td>
                             <td className="px-4 py-3 whitespace-nowrap hidden md:table-cell">
                               <div className="w-full bg-surface-200 dark:bg-surface-700 rounded-full h-2.5 mb-1">
-                                <div 
+                                <div
                                   className={`h-2.5 rounded-full ${
                                     deal.probability >= 70 ? 'bg-green-500' :
                                     deal.probability >= 40 ? 'bg-amber-500' :
                                     'bg-blue-500'
                                   }`}
-                                  style={{ width: `${deal.probability}%` }}
+                                  style={{ width: `${deal.probability || 0}%` }}
                                 ></div>
                               </div>
                               <div className="text-xs text-surface-600 dark:text-surface-400">{deal.probability}%</div>
