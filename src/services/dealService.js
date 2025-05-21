@@ -26,8 +26,8 @@ export const fetchDeals = async () => {
       fields: ["id", "Name", "Tags", "amount", "stage", "probability", "contact", "CreatedOn"],
       orderBy: [
         {
-          field: "CreatedOn",
-          direction: "desc"
+          fieldName: "CreatedOn",
+          sortType: "DESC"
         }
       ],
       expands: [

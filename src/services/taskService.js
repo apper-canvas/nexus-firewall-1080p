@@ -26,8 +26,8 @@ export const fetchTasks = async () => {
       fields: ["id", "Name", "title", "status", "priority", "due_date", "contact", "deal", "CreatedOn"],
       orderBy: [
         {
-          field: "due_date",
-          direction: "asc"
+          fieldName: "due_date",
+          sortType: "ASC"
         }
       ],
       expands: [

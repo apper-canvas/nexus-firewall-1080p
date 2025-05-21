@@ -124,6 +124,9 @@ const Home = () => {
         calculateStats(contactsData, dealsData, tasksData);
       } catch (error) {
         console.error("Error loading data:", error);
+        // Set error messages
+        setError(prev => ({ ...prev, contacts: "Failed to load data", deals: "Failed to load data", tasks: "Failed to load data" }));
+        toast.error("Failed to load dashboard data");
       }
     };
     
@@ -152,7 +155,14 @@ const Home = () => {
         case 'dashboard':
           // Dashboard shows all data, so refresh everything
           const [contactsData, dealsData, tasksData] = await Promise.all([
-            contacts.length === 0 ? loadContacts() : Promise.resolve(contacts),
+            // Use a try/catch for each Promise to prevent one failure from stopping all
+            contacts.length === 0 ? 
+              loadContacts().catch(err => {
+                console.error("Error refreshing contacts:", err);
+                setError(prev => ({ ...prev, contacts: "Failed to refresh contacts" }));
+                return [];
+              }) 
+              : Promise.resolve(contacts),
             deals.length === 0 ? loadDeals() : Promise.resolve(deals),
             tasks.length === 0 ? loadTasks() : Promise.resolve(tasks)
           ]);

@@ -26,8 +26,8 @@ export const fetchContacts = async () => {
       fields: ["id", "Name", "Tags", "email", "company", "phone", "title", "type", "status", "CreatedOn"],
       orderBy: [
         {
-          field: "CreatedOn",
-          direction: "desc"
+          fieldName: "CreatedOn",
+          sortType: "DESC"
         }
       ]
     };
