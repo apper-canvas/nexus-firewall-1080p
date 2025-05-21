@@ -285,7 +285,7 @@ const MainFeature = ({ onAddContact }) => {
             <div className="bg-white dark:bg-surface-800 p-4 rounded-lg border border-surface-200 dark:border-surface-700">
               <div className="flex items-center">
                 <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-md">
-                  {getIcon('user')({ className: "h-5 w-5 text-blue-600 dark:text-blue-400" })}
+                  <UserIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div className="ml-4">
                   <h4 className="text-sm font-medium">Leads</h4>
@@ -297,7 +297,7 @@ const MainFeature = ({ onAddContact }) => {
             <div className="bg-white dark:bg-surface-800 p-4 rounded-lg border border-surface-200 dark:border-surface-700">
               <div className="flex items-center">
                 <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-md">
-                  {getIcon('user-check')({ className: "h-5 w-5 text-purple-600 dark:text-purple-400" })}
+                  <UserCheckIcon className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                 </div>
                 <div className="ml-4">
                   <h4 className="text-sm font-medium">Prospects</h4>
@@ -309,7 +309,7 @@ const MainFeature = ({ onAddContact }) => {
             <div className="bg-white dark:bg-surface-800 p-4 rounded-lg border border-surface-200 dark:border-surface-700">
               <div className="flex items-center">
                 <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-md">
-                  {getIcon('users')({ className: "h-5 w-5 text-green-600 dark:text-green-400" })}
+                  <UsersIcon className="h-5 w-5 text-green-600 dark:text-green-400" />
                 </div>
                 <div className="ml-4">
                   <h4 className="text-sm font-medium">Customers</h4>
@@ -321,7 +321,7 @@ const MainFeature = ({ onAddContact }) => {
             <div className="bg-white dark:bg-surface-800 p-4 rounded-lg border border-surface-200 dark:border-surface-700">
               <div className="flex items-center">
                 <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-md">
-                  {getIcon('handshake')({ className: "h-5 w-5 text-amber-600 dark:text-amber-400" })}
+                  <HandshakeIcon className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                 </div>
                 <div className="ml-4">
                   <h4 className="text-sm font-medium">Partners</h4>
