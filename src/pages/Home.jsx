@@ -116,7 +116,7 @@ const Home = () => {
     const loadAllData = async () => {
       try {
         const [contactsData, dealsData, tasksData] = await Promise.all([
-          loadContacts(),
+          loadContacts(), 
           loadDeals(),
           loadTasks()
         ]);
@@ -137,7 +137,7 @@ const Home = () => {
   useEffect(() => {
     const refreshTabData = async () => {
       switch (activeTab) { 
-        case 'contacts':
+        case 'contacts': 
           if (!isLoading.contacts && (contacts.length === 0 || error.contacts)) {
             await loadContacts();
           }
@@ -155,7 +155,15 @@ const Home = () => {
         case 'dashboard':
           // Dashboard shows all data, so refresh everything
           const [contactsData, dealsData, tasksData] = await Promise.all([
-            // Use a try/catch for each Promise to prevent one failure from stopping all
+            // Each Promise is wrapped with catch to prevent one failure from stopping all
+            // This ensures robust loading even if one service fails
+            contacts.length === 0 || error.contacts ? 
+              loadContacts().catch(err => {
+                console.error("Error refreshing contacts:", err);
+                setError(prev => ({ ...prev, contacts: "Failed to refresh contacts" }));
+                return [];
+              }) 
+              : Promise.resolve(contacts),
             contacts.length === 0 ? 
               loadContacts().catch(err => {
                 console.error("Error refreshing contacts:", err);
@@ -163,8 +171,18 @@ const Home = () => {
                 return [];
               }) 
               : Promise.resolve(contacts),
-            deals.length === 0 ? loadDeals() : Promise.resolve(deals),
-            tasks.length === 0 ? loadTasks() : Promise.resolve(tasks)
+            deals.length === 0 || error.deals ? 
+              loadDeals().catch(err => {
+                console.error("Error refreshing deals:", err);
+                setError(prev => ({ ...prev, deals: "Failed to refresh deals" }));
+                return [];
+              }) : Promise.resolve(deals),
+            tasks.length === 0 || error.tasks ? 
+              loadTasks().catch(err => {
+                console.error("Error refreshing tasks:", err);
+                setError(prev => ({ ...prev, tasks: "Failed to refresh tasks" }));
+                return [];
+              }) : Promise.resolve(tasks)
           ]);
           
           calculateStats(contactsData, dealsData, tasksData);
@@ -439,7 +457,7 @@ const Home = () => {
                   
                   {isLoading.contacts && <div className="text-center py-4">Loading contacts...</div>}
                   <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-surface-200 dark:divide-surface-700">
+                    {!isLoading.contacts && contacts.length > 0 && <table className="min-w-full divide-y divide-surface-200 dark:divide-surface-700">
                       <thead>
                         <tr>
                           <th className="px-4 py-3 text-left text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wider">Name</th>
@@ -482,7 +500,14 @@ const Home = () => {
                           </tr>
                         ))}
                       </tbody>
-                    </table>
+                    </table>}
+                    {!isLoading.contacts && contacts.length === 0 && !error.contacts && (
+                      <div className="text-center py-8 text-surface-500 dark:text-surface-400">
+                        No contacts found. Add your first contact to get started.
+                      </div>
+                    )}
+                    {error.contacts && <div className="text-center py-4 text-red-500">
+                      {error.contacts}</div>}
                   </div>
                 </div>
               )}
@@ -503,7 +528,7 @@ const Home = () => {
                   
                   {isLoading.deals && <div className="text-center py-4">Loading deals...</div>}
                   <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-surface-200 dark:divide-surface-700">
+                    {!isLoading.deals && deals.length > 0 && <table className="min-w-full divide-y divide-surface-200 dark:divide-surface-700">
                       <thead>
                         <tr>
                           <th className="px-4 py-3 text-left text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wider">Deal Name</th>
@@ -552,7 +577,17 @@ const Home = () => {
                           </tr>
                         ))}
                       </tbody>
-                    </table>
+                    </table>}
+                    {!isLoading.deals && deals.length === 0 && !error.deals && (
+                      <div className="text-center py-8 text-surface-500 dark:text-surface-400">
+                        No deals found. Create your first deal to get started.
+                      </div>
+                    )}
+                    {error.deals && (
+                      <div className="text-center py-4 text-red-500">
+                        {error.deals}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -562,7 +597,7 @@ const Home = () => {
                   <div className="w-full max-w-md p-8 glass-card">
                     <div className="flex justify-center mb-4">
                       {activeTab === 'tasks' ? (
-                        <CheckSquareIcon className="h-16 w-16 text-secondary" />
+                        <CheckSquareIcon className="h-16 w-16 text-secondary" /> 
                       ) : (
                         getIcon('bar-chart-2')({ className: "h-16 w-16 text-primary" })
                       )}
