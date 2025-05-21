@@ -16,7 +16,6 @@ const MainFeature = ({ onAddContact }) => {
     phone: '',
     type: 'lead',
     title: ''
-    title: ''
   });
   const [formErrors, setFormErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -95,7 +94,6 @@ const MainFeature = ({ onAddContact }) => {
           email: '',
           company: '',
           phone: '',
-          phone: '',
           type: 'lead',
           title: ''
         });
@@ -108,6 +106,7 @@ const MainFeature = ({ onAddContact }) => {
       setIsSubmitting(false);
       
     } else {
+      // Form validation failed, errors are displayed to the user
     }
   };
   
