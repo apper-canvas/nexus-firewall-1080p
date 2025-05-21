@@ -1,6 +1,5 @@
 import { useState, useEffect, createContext } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
-import { ToastContainer, toast } from 'react-toastify';
 import { motion } from 'framer-motion';
 import { useDispatch, useSelector } from 'react-redux';
 import { setUser, clearUser } from './store/userSlice';
@@ -33,15 +32,6 @@ const ThemeToggle = () => {
 
   const toggleTheme = () => {
     setDarkMode(!darkMode);
-    toast.info(`Switched to ${!darkMode ? 'dark' : 'light'} mode`, {
-      position: "bottom-right",
-      autoClose: 2000,
-      hideProgressBar: true,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-    });
   };
 
   const SunIcon = getIcon('sun');
@@ -182,22 +172,6 @@ function App() {
         <Route path="/" element={isAuthenticated ? <Home /> : <Login />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="colored"
-        toastStyle={{
-          borderRadius: '0.5rem',
-          fontSize: '0.875rem',
-        }}
-      />
     </AuthContext.Provider>
   );
 }

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { toast } from 'react-toastify';
 import { getIcon } from '../utils/iconUtils';
 import { fetchContactTypeStats } from '../services/contactService';
 
@@ -40,7 +39,6 @@ const MainFeature = ({ onAddContact }) => {
         setContactStats(stats);
       } catch (error) {
         console.error("Error loading contact stats:", error);
-        toast.error("Failed to load contact statistics");
       } finally {
         setIsLoadingStats(false);
       }
@@ -103,13 +101,11 @@ const MainFeature = ({ onAddContact }) => {
         // Close form
         setIsFormOpen(false);
       } catch (error) {
-        toast.error("Failed to add contact. Please try again.");
         console.error("Error adding contact:", error);
       }
       setIsSubmitting(false);
       
     } else {
-      toast.error("Please fix the errors in the form.");
     }
   };
   
